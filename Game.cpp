@@ -191,6 +191,8 @@ void Game::updateStatistics(sf::Time elapsedTime)
 
 	if (mStatisticsUpdateTime >= sf::seconds(0.050f))
 	{
+		// Handle collision weapon enemies
+
 		for (std::shared_ptr<Entity> weapon : EntityManager::m_Entities)
 		{
 			if (weapon->m_enabled == false)
@@ -232,6 +234,49 @@ void Game::updateStatistics(sf::Time elapsedTime)
 		}
 
 		end:
+
+		// Handle collision weapon blocks
+
+		for (std::shared_ptr<Entity> weapon : EntityManager::m_Entities)
+		{
+			if (weapon->m_enabled == false)
+			{
+				continue;
+			}
+
+			if (weapon->m_type != EntityType::weapon)
+			{
+				continue;
+			}
+
+			for (std::shared_ptr<Entity> block : EntityManager::m_Entities)
+			{
+				if (block->m_type != EntityType::block)
+				{
+					continue;
+				}
+
+				if (block->m_enabled == false)
+				{
+					continue;
+				}
+
+				sf::FloatRect boundWeapon;
+				boundWeapon = weapon->m_sprite.getGlobalBounds();
+
+				sf::FloatRect boundBlock;
+				boundBlock = block->m_sprite.getGlobalBounds();
+
+				if (boundWeapon.intersects(boundBlock) == true)
+				{
+					weapon->m_enabled = false;
+					//break;
+					goto end2;
+				}
+			}
+		}
+
+	end2:
 
 		//
 		// Handle Weapon moves
