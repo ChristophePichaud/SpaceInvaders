@@ -30,6 +30,7 @@ private:
 	sf::Font	mFont;
 	sf::Text	mStatisticsText;
 	sf::Time	mStatisticsUpdateTime;
+	sf::Text	mText;
 
 	std::size_t	mStatisticsNumFrames;
 	bool mIsMovingUp;

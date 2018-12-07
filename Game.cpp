@@ -167,6 +167,7 @@ void Game::render()
 	}
 
 	mWindow.draw(mStatisticsText);
+	mWindow.draw(mText);
 	mWindow.display();
 }
 
@@ -191,6 +192,27 @@ void Game::updateStatistics(sf::Time elapsedTime)
 
 	if (mStatisticsUpdateTime >= sf::seconds(0.050f))
 	{
+		// Game Over ?
+		int count = std::count_if(EntityManager::m_Entities.begin(), EntityManager::m_Entities.end(), [](std::shared_ptr<Entity> element) {
+			if (element->m_type == EntityType::enemy)
+			{
+				if (element->m_enabled == false)
+				{
+					return true;
+				}
+			}
+			return false;
+		});
+
+		//if (count >= (5))
+		if (count == (SPRITE_COUNT_X * SPRITE_COUNT_Y))
+		{
+			mText.setFont(mFont);
+			mText.setPosition(300.f, 300.f);
+			mText.setCharacterSize(40);
+			mText.setString("GAME OVER");
+		}
+
 		// Handle collision weapon enemies
 
 		for (std::shared_ptr<Entity> weapon : EntityManager::m_Entities)
@@ -335,7 +357,7 @@ void Game::updateStatistics(sf::Time elapsedTime)
 				x--;
 			entity->m_times++;
 
-			if (entity->m_times>=50)
+			if (entity->m_times>=100)
 			{
 				if (entity->m_bLeftToRight == true)
 				{
