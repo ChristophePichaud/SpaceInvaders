@@ -65,7 +65,7 @@ private:
 
 	bool _IsGameOver = false;
 	bool _IsEnemyWeaponFired = false;
-	bool _IsWeaponFired = false;
+	bool _IsPlayerWeaponFired = false;
 	bool _IsEnemyMasterWeaponFired = false;
 
 	sf::Texture	_TextureEnemy;

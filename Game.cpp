@@ -37,7 +37,7 @@ void Game::ResetSprites()
 {
 	_IsGameOver = false;
 	_IsEnemyWeaponFired = false;
-	_IsWeaponFired = false;
+	_IsPlayerWeaponFired = false;
 	_IsEnemyMasterWeaponFired = false;
 
 	for (std::shared_ptr<Entity> entity : EntityManager::m_Entities)
@@ -52,7 +52,7 @@ void Game::InitSprites()
 	_score = 0;
 	_IsGameOver = false;
 	_IsEnemyWeaponFired = false;
-	_IsWeaponFired = false;
+	_IsPlayerWeaponFired = false;
 	_IsEnemyMasterWeaponFired = false;
 
 	//
@@ -284,7 +284,7 @@ void Game::HandleTexts()
 	std::string lives = "Lives: " + std::to_string(_lives);
 	_LivesText.setString(lives);
 	std::string score = "Score: " + std::to_string(_score);
-	_ScoreText.setString(std::to_string(_score));
+	_ScoreText.setString(score);
 	return;
 }
 
@@ -543,6 +543,7 @@ void Game::HandleCollisionWeaponPlayer()
 		if (boundWeapon.intersects(boundPlayer) == true)
 		{
 			weapon->m_enabled = false;
+			_IsEnemyWeaponFired = false;
 			_lives--;
 			goto end;
 		}
@@ -753,7 +754,7 @@ void Game::HanldeWeaponMoves()
 		if (y <= 0)
 		{
 			entity->m_enabled = false;
-			_IsWeaponFired = false;
+			_IsPlayerWeaponFired = false;
 		}
 
 		entity->m_sprite.setPosition(x, y);
@@ -797,7 +798,7 @@ void Game::HandleCollisionWeaponBlock()
 			if (boundWeapon.intersects(boundBlock) == true)
 			{
 				weapon->m_enabled = false;
-				_IsWeaponFired = false;
+				_IsPlayerWeaponFired = false;
 				//break;
 				goto end2;
 			}
@@ -847,7 +848,7 @@ void Game::HandleCollisionWeaponEnemy()
 			{
 				enemy->m_enabled = false;
 				weapon->m_enabled = false;
-				_IsWeaponFired = false;
+				_IsPlayerWeaponFired = false;
 				_score += 10;
 				//break;
 				goto end;
@@ -898,7 +899,7 @@ void Game::HandleCollisionWeaponEnemyMaster()
 			{
 				enemy->m_enabled = false;
 				weapon->m_enabled = false;
-				_IsWeaponFired = false;
+				_IsPlayerWeaponFired = false;
 				_score += 100;
 				//break;
 				goto end;
@@ -980,7 +981,7 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
 			return;
 		}
 
-		if (_IsWeaponFired == true)
+		if (_IsPlayerWeaponFired == true)
 		{
 			return;
 		}
@@ -994,6 +995,6 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
 		sw->m_size = _TextureWeapon.getSize();
 		EntityManager::m_Entities.push_back(sw);
 
-		_IsWeaponFired = true;
+		_IsPlayerWeaponFired = true;
 	}
 }
