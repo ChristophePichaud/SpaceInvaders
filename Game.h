@@ -17,7 +17,11 @@ private:
 	void update(sf::Time elapsedTime);
 	void render();
 
+	void InitSprites();
+	void ResetSprites();
+
 	void updateStatistics(sf::Time elapsedTime);
+	void HandleTexts();
 	void HandleCollisionEnemyMasterWeaponPlayer();
 	void HanldeEnemyMasterWeaponMoves();
 	void HandleEnemyMasterWeaponFiring();
@@ -32,8 +36,9 @@ private:
 	void HanldeWeaponMoves();
 	void HandleCollisionWeaponBlock();
 	void HandleCollisionWeaponEnemy();
+	void HandleCollisionWeaponEnemyMaster();
 	void HandleGameOver();
-	void GameOver();
+	void DisplayGameOver();
 	void handlePlayerInput(sf::Keyboard::Key key, bool isPressed);
 
 private:
@@ -47,6 +52,10 @@ private:
 	sf::Text	mStatisticsText;
 	sf::Time	mStatisticsUpdateTime;
 	sf::Text	mText;
+	sf::Text	_LivesText;
+	int _lives = 3;
+	sf::Text	_ScoreText;
+	int _score = 0;
 
 	std::size_t	mStatisticsNumFrames;
 	bool mIsMovingUp;

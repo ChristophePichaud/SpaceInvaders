@@ -34,11 +34,6 @@ std::shared_ptr<Entity> EntityManager::GetEnemyMaster()
 {
 	for (std::shared_ptr<Entity> entity : EntityManager::m_Entities)
 	{
-		if (entity->m_enabled == false)
-		{
-			continue;
-		}
-
 		if (entity->m_type == EntityType::enemyMaster)
 		{
 			return entity;

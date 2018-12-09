@@ -24,12 +24,43 @@ Game::Game()
 	_TextureWeapon.loadFromFile("Media/Textures/SI_WeaponGreen.png");
 	_TextureWeaponEnemy.loadFromFile("Media/Textures/SI_WeaponYellow.png");
 	_TextureWeaponEnemyMaster.loadFromFile("Media/Textures/SI_WeaponRed.png");
-
-
 	mTexture.loadFromFile("Media/Textures/SI_Player.png");
+	_TextureEnemyMaster.loadFromFile("Media/Textures/SI_EnemyMaster.png");
+	_TextureEnemy.loadFromFile("Media/Textures/SI_Enemy.png");
+	_TextureBlock.loadFromFile("Media/Textures/SI_Block.png");
+	mFont.loadFromFile("Media/Sansation.ttf");
+
+	InitSprites();
+}
+
+void Game::ResetSprites()
+{
+	_IsGameOver = false;
+	_IsEnemyWeaponFired = false;
+	_IsWeaponFired = false;
+	_IsEnemyMasterWeaponFired = false;
+
+	for (std::shared_ptr<Entity> entity : EntityManager::m_Entities)
+	{
+		entity->m_enabled = true;
+	}
+}
+
+void Game::InitSprites()
+{
+	_lives = 3;
+	_score = 0;
+	_IsGameOver = false;
+	_IsEnemyWeaponFired = false;
+	_IsWeaponFired = false;
+	_IsEnemyMasterWeaponFired = false;
+
+	//
+	// Player
+	//
+
 	mPlayer.setTexture(mTexture);
 	mPlayer.setPosition(100.f, 500.f);
-
 	std::shared_ptr<Entity> player = std::make_shared<Entity>();
 	player->m_sprite = mPlayer;
 	player->m_type = EntityType::player;
@@ -37,10 +68,12 @@ Game::Game()
 	player->m_position = mPlayer.getPosition();
 	EntityManager::m_Entities.push_back(player);
 
-	_TextureEnemyMaster.loadFromFile("Media/Textures/SI_EnemyMaster.png");
+	//
+	// Enemy Master
+	//
+
 	_EnemyMaster.setTexture(_TextureEnemyMaster);
 	_EnemyMaster.setPosition(100.f + 50.f, 1.f);
-
 	std::shared_ptr<Entity> sem = std::make_shared<Entity>();
 	sem->m_sprite = _EnemyMaster;
 	sem->m_type = EntityType::enemyMaster;
@@ -48,14 +81,17 @@ Game::Game()
 	sem->m_position = _EnemyMaster.getPosition();
 	EntityManager::m_Entities.push_back(sem);
 
-	_TextureEnemy.loadFromFile("Media/Textures/SI_Enemy.png");
+	//
+	// Enemies
+	//
+
 	for (int i = 0; i < SPRITE_COUNT_X; i++)
 	{
 		for (int j = 0; j < SPRITE_COUNT_Y; j++)
 		{
 			_Enemy[i][j].setTexture(_TextureEnemy);
 			_Enemy[i][j].setPosition(100.f + 50.f * (i + 1), 10.f + 50.f * (j + 1));
-			
+
 			std::shared_ptr<Entity> se = std::make_shared<Entity>();
 			se->m_sprite = _Enemy[i][j];
 			se->m_type = EntityType::enemy;
@@ -65,7 +101,10 @@ Game::Game()
 		}
 	}
 
-	_TextureBlock.loadFromFile("Media/Textures/SI_Block.png");
+	//
+	// Blocks
+	//
+
 	for (int i = 0; i < BLOCK_COUNT; i++)
 	{
 		_Block[i].setTexture(_TextureBlock);
@@ -79,10 +118,29 @@ Game::Game()
 		EntityManager::m_Entities.push_back(sb);
 	}
 
-	mFont.loadFromFile("Media/Sansation.ttf");
 	mStatisticsText.setFont(mFont);
 	mStatisticsText.setPosition(5.f, 5.f);
 	mStatisticsText.setCharacterSize(10);
+
+	//
+	// Lives
+	//
+
+	_LivesText.setFillColor(sf::Color::Green);
+	_LivesText.setFont(mFont);
+	_LivesText.setPosition(10.f, 50.f);
+	_LivesText.setCharacterSize(20);
+	_LivesText.setString(std::to_string(_lives));
+
+	//
+	// Text
+	//
+
+	_ScoreText.setFillColor(sf::Color::Green);
+	_ScoreText.setFont(mFont);
+	_ScoreText.setPosition(10.f, 100.f);
+	_ScoreText.setCharacterSize(20);
+	_ScoreText.setString(std::to_string(_score));
 }
 
 void Game::run()
@@ -172,6 +230,8 @@ void Game::render()
 
 	mWindow.draw(mStatisticsText);
 	mWindow.draw(mText);
+	mWindow.draw(_LivesText);
+	mWindow.draw(_ScoreText);
 	mWindow.display();
 }
 
@@ -199,6 +259,7 @@ void Game::updateStatistics(sf::Time elapsedTime)
 		if (_IsGameOver == true)
 			return;
 
+		HandleTexts();
 		HandleGameOver();
 		HandleCollisionWeaponEnemy();
 		HandleCollisionWeaponPlayer();
@@ -207,6 +268,7 @@ void Game::updateStatistics(sf::Time elapsedTime)
 		HandleCollisionEnemyMasterWeaponBlock();
 		HandleCollisionEnemyMasterWeaponPlayer();
 		HandleCollisionBlockEnemy();
+		HandleCollisionWeaponEnemyMaster();
 		HanldeWeaponMoves();
 		HanldeEnemyWeaponMoves();
 		HanldeEnemyMasterWeaponMoves();
@@ -215,6 +277,15 @@ void Game::updateStatistics(sf::Time elapsedTime)
 		HandleEnemyWeaponFiring();
 		HandleEnemyMasterWeaponFiring();
 	}
+}
+
+void Game::HandleTexts()
+{
+	std::string lives = "Lives: " + std::to_string(_lives);
+	_LivesText.setString(lives);
+	std::string score = "Score: " + std::to_string(_score);
+	_ScoreText.setString(std::to_string(_score));
+	return;
 }
 
 void Game::HandleCollisionEnemyMasterWeaponPlayer()
@@ -240,7 +311,8 @@ void Game::HandleCollisionEnemyMasterWeaponPlayer()
 		if (boundWeapon.intersects(boundPlayer) == true)
 		{
 			weapon->m_enabled = false;
-			GameOver();
+			_IsEnemyMasterWeaponFired = false; 
+			_lives--;
 			//break;
 			goto end;
 		}
@@ -283,6 +355,9 @@ void Game::HanldeEnemyMasterWeaponMoves()
 void Game::HandleEnemyMasterWeaponFiring()
 {
 	if (_IsEnemyMasterWeaponFired == true)
+		return;
+
+	if (EntityManager::GetEnemyMaster()->m_enabled == false)
 		return;
 
 	// a little random...
@@ -468,8 +543,7 @@ void Game::HandleCollisionWeaponPlayer()
 		if (boundWeapon.intersects(boundPlayer) == true)
 		{
 			weapon->m_enabled = false;
-			GameOver();
-			//break;
+			_lives--;
 			goto end;
 		}
 	}
@@ -595,8 +669,7 @@ void Game::HandleCollisionBlockEnemy()
 
 			if (boundEnemy.intersects(boundBlock) == true)
 			{
-				GameOver();
-				//break;
+				EntityManager::GetPlayer()->m_enabled = false;
 				goto end3;
 			}
 		}
@@ -775,6 +848,58 @@ void Game::HandleCollisionWeaponEnemy()
 				enemy->m_enabled = false;
 				weapon->m_enabled = false;
 				_IsWeaponFired = false;
+				_score += 10;
+				//break;
+				goto end;
+			}
+		}
+	}
+
+end:
+	//nop
+	return;
+}
+
+void Game::HandleCollisionWeaponEnemyMaster()
+{
+	// Handle collision weapon master enemy
+
+	for (std::shared_ptr<Entity> weapon : EntityManager::m_Entities)
+	{
+		if (weapon->m_enabled == false)
+		{
+			continue;
+		}
+
+		if (weapon->m_type != EntityType::weapon)
+		{
+			continue;
+		}
+
+		for (std::shared_ptr<Entity> enemy : EntityManager::m_Entities)
+		{
+			if (enemy->m_type != EntityType::enemyMaster)
+			{
+				continue;
+			}
+
+			if (enemy->m_enabled == false)
+			{
+				continue;
+			}
+
+			sf::FloatRect boundWeapon;
+			boundWeapon = weapon->m_sprite.getGlobalBounds();
+
+			sf::FloatRect boundEnemy;
+			boundEnemy = enemy->m_sprite.getGlobalBounds();
+
+			if (boundWeapon.intersects(boundEnemy) == true)
+			{
+				enemy->m_enabled = false;
+				weapon->m_enabled = false;
+				_IsWeaponFired = false;
+				_score += 100;
 				//break;
 				goto end;
 			}
@@ -790,7 +915,7 @@ void Game::HandleGameOver()
 {
 	// Game Over ?
 	int count = std::count_if(EntityManager::m_Entities.begin(), EntityManager::m_Entities.end(), [](std::shared_ptr<Entity> element) {
-		if (element->m_type == EntityType::enemy)
+		if (element->m_type == EntityType::enemy || element->m_type == EntityType::enemyMaster)
 		{
 			if (element->m_enabled == false)
 			{
@@ -800,23 +925,41 @@ void Game::HandleGameOver()
 		return false;
 	});
 
+	// sprite counts + enemy master
 	//if (count >= (5))
-	if (count == (SPRITE_COUNT_X * SPRITE_COUNT_Y))
+	if (count == ((SPRITE_COUNT_X * SPRITE_COUNT_Y) + 1))
 	{
-		GameOver();
+		DisplayGameOver();
+	}
+
+	if (EntityManager::GetPlayer()->m_enabled == false)
+	{
+		DisplayGameOver();
+	}
+
+	if (_lives == 0)
+	{
+		DisplayGameOver();
 	}
 }
 
-void Game::GameOver()
+void Game::DisplayGameOver()
 {
-	mText.setFillColor(sf::Color::Green);
-	mText.setFont(mFont);
-	mText.setPosition(200.f, 200.f);
-	mText.setCharacterSize(80);
-	
-	mText.setString("GAME OVER");
+	if (_lives == 0)
+	{
+		mText.setFillColor(sf::Color::Green);
+		mText.setFont(mFont);
+		mText.setPosition(200.f, 200.f);
+		mText.setCharacterSize(80);
 
-	_IsGameOver = true;
+		mText.setString("GAME OVER");
+
+		_IsGameOver = true;
+	}
+	else
+	{
+		ResetSprites();
+	}
 }
 
 void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
